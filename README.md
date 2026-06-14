@@ -369,5 +369,5 @@ export class ProductModule {}
 ## 5. Lưu đồ thuật toán (Activity Diagram) của CRUD Product
 
 ### Sơ đồ trực quan từ file thiết kế:
-![Lưu đồ thuật toán CRUD Product]([file:///C:/Users/ADMIN/Downloads/product-module/product-module/diagram/ktraGKI.drawio.png](https://github.com/Hakiraxx/STMDT-TKWNC/edit/main/diagram/ktraGKI.drawio.png))
+![Lưu đồ thuật toán CRUD Product](https://i.ibb.co/qYKxfFd6/ktra-GKI-drawio.png)
 
