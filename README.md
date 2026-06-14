@@ -68,15 +68,20 @@ DB_DATABASE=ecommerce_db
 ```
 
 ### Bước 4: Chạy ứng dụng
-- Chạy ở chế độ phát triển (Development):
+
+- **Chạy ứng dụng bằng NestJS** (Chế độ phát triển):
   ```bash
   npm run start:dev
   ```
-- Build sản phẩm:
+- **Chạy ứng dụng bằng Express độc lập** (`index.ts`):
+  ```bash
+  npm run start:express
+  ```
+- **Build sản phẩm (NestJS)**:
   ```bash
   npm run build
   ```
-- Chạy ở chế độ production:
+- **Chạy ở chế độ production (NestJS)**:
   ```bash
   npm run start:prod
   ```
