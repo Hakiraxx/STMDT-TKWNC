@@ -369,54 +369,5 @@ export class ProductModule {}
 ## 5. Lưu đồ thuật toán (Activity Diagram) của CRUD Product
 
 ### Sơ đồ trực quan từ file thiết kế:
-![Lưu đồ thuật toán CRUD Product](file:///C:/Users/ADMIN/Downloads/product-module/product-module/diagram/ktraGKI.drawio.png)
+![Lưu đồ thuật toán CRUD Product]([file:///C:/Users/ADMIN/Downloads/product-module/product-module/diagram/ktraGKI.drawio.png](https://github.com/Hakiraxx/STMDT-TKWNC/edit/main/diagram/ktraGKI.drawio.png))
 
-### Mã nguồn Mermaid tương ứng:
-Bạn có thể copy mã nguồn Mermaid dưới đây để dán vào các công cụ hiển thị sơ đồ (như Mermaid Live Editor, Draw.io hoặc Markdown Viewer):
-
-```mermaid
-flowchart TD
-    Start([Bắt Đầu]) --> ReceiveReq[Nhận yêu cầu<br/>CREATE, READ, UPDATE, DELETE]
-    ReceiveReq --> TypeDecision{Loại}
-
-    %% CREATE BRANCH
-    TypeDecision -- Create --> InputData[Nhập Dữ Liệu SP<br/>id, name, price]
-    InputData --> ValidateCreate{id hợp lệ &<br/>slug chưa tồn tại}
-    ValidateCreate -- False --> ErrorCreate[Trả về mã lỗi<br/>409 / 400]
-    ValidateCreate -- True --> SaveCreate[Lưu SP và CSDL]
-    SaveCreate --> Return201[Trả về mã 201 Created]
-
-    %% READ BRANCH
-    TypeDecision -- READ --> QueryRead[Truy Vấn CSDL<br/>FindAll || findOne id]
-    QueryRead --> FoundRead{Tìm Thấy ?}
-    FoundRead -- True --> Return200[Trả về mã 200<br/>kèm thông tin sản phẩm]
-    FoundRead -- False --> Error404Read[Trả về mã lỗi 404]
-
-    %% UPDATE BRANCH
-    TypeDecision -- Update --> FindUpdate[Tìm sản phẩm theo ID<br/>FindOne id]
-    FindUpdate --> FoundUpdate{Tìm thấy}
-    FoundUpdate -- False --> Error404Update[Trả lỗi 404]
-    FoundUpdate -- True --> SlugChanged{Kiểm tra thay đổi Slug}
-    SlugChanged -- False --> ExecUpdate[Cập nhật bản ghi<br/>Update product SET]
-    SlugChanged -- True --> SlugExistCheck{Kiểm tra slug tồn tại chưa}
-    SlugExistCheck -- True --> DuplicateSlug{Trùng}
-    DuplicateSlug -- True --> Error409Update[Báo mã lỗi 409]
-    DuplicateSlug -- False --> ExecUpdate
-
-    %% DELETE BRANCH
-    TypeDecision -- Delete --> FindDelete[Tìm sản phẩm theo ID<br/>FindOne id]
-    FindDelete --> FoundDelete{Tìm thấy}
-    FoundDelete -- False --> Error404Delete[Trả mã lỗi 404]
-    FoundDelete -- True --> ExecDelete[Xóa bản ghi khỏi CSDL<br/>DELETE FROM product]
-
-    %% CONVERGENCE TO NOTIFICATION
-    ErrorCreate --> ShowNotification[Hiển Thị Thông Báo]
-    Return201 --> ShowNotification
-    Return200 --> ShowNotification
-    Error404Read --> ShowNotification
-    Error404Update --> ShowNotification
-    ExecUpdate --> ShowNotification
-    Error409Update --> ShowNotification
-    Error404Delete --> ShowNotification
-    ExecDelete --> ShowNotification
-```
