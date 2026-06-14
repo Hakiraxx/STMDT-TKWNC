@@ -86,12 +86,32 @@ CREATE TABLE IF NOT EXISTS order_item (
 );
 
 -- ---------------------------------------------------------
+-- 6. Bảng User (Người dùng) - Thành viên mới bổ sung
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    username    VARCHAR(50) NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL,
+    email       VARCHAR(100) NOT NULL UNIQUE,
+    full_name   VARCHAR(100),
+    role        VARCHAR(20) DEFAULT 'CUSTOMER',
+    is_active   TINYINT(1) NOT NULL DEFAULT 1,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ---------------------------------------------------------
 -- DỮ LIỆU MẪU
 -- ---------------------------------------------------------
 INSERT INTO category (name, slug, description) VALUES
 ('Điện thoại', 'dien-thoai', 'Các loại điện thoại di động'),
 ('Laptop', 'laptop', 'Máy tính xách tay'),
 ('Phụ kiện', 'phu-kien', 'Phụ kiện công nghệ');
+
+INSERT INTO user (username, password, email, full_name, role) VALUES
+('admin', 'admin123', 'admin@example.com', 'System Admin', 'ADMIN'),
+('customer1', 'customer123', 'customer1@example.com', 'John Doe', 'CUSTOMER');
+
 
 INSERT INTO product (name, slug, description, price, stock, image_url, category_id) VALUES
 ('iPhone 15 Pro', 'iphone-15-pro', 'Điện thoại Apple iPhone 15 Pro 256GB', 28990000, 50, 'https://example.com/img/iphone15pro.jpg', 1),

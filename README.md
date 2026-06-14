@@ -7,6 +7,7 @@
 ## 1. Link Github Repo công việc
 - Github Repository chính: [https://github.com/Hakiraxx/STMDT-TKWNC](https://github.com/Hakiraxx/STMDT-TKWNC)
 - Thư mục quản lý Sản phẩm (Product): [https://github.com/Hakiraxx/STMDT-TKWNC/tree/main/src/product](https://github.com/Hakiraxx/STMDT-TKWNC/tree/main/src/product)
+- Thư mục quản lý Người dùng (User): [https://github.com/Hakiraxx/STMDT-TKWNC/tree/main/src/user](https://github.com/Hakiraxx/STMDT-TKWNC/tree/main/src/user)
 
 ---
 
@@ -24,6 +25,14 @@
 │   │   ├── product.service.ts
 │   │   ├── product.controller.ts
 │   │   └── product.module.ts
+│   ├── user/
+│   │   ├── dto/
+│   │   │   ├── create-user.dto.ts
+│   │   │   └── update-user.dto.ts
+│   │   ├── user.entity.ts
+│   │   ├── user.service.ts
+│   │   ├── user.controller.ts
+│   │   └── user.module.ts
 │   ├── app.module.ts
 │   └── main.ts
 ├── database/
@@ -369,10 +378,321 @@ import { ProductController } from './product.controller';
 export class ProductModule {}
 ```
 
+### 4.6. Entity User (`src/user/user.entity.ts`)
+```typescript
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+@Entity('user')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 50, unique: true })
+  username: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  email: string;
+
+  @Column({ name: 'full_name', type: 'varchar', length: 100, nullable: true })
+  fullName: string;
+
+  @Column({ type: 'varchar', length: 20, default: 'CUSTOMER' })
+  role: string;
+
+  @Column({ name: 'is_active', type: 'tinyint', default: 1 })
+  isActive: boolean;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}
+```
+
+### 4.7. DTO Create & Update User
+- **CreateUserDto** (`src/user/dto/create-user.dto.ts`):
+```typescript
+import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
+
+export class CreateUserDto {
+  @IsNotEmpty({ message: 'Username không được để trống' })
+  @IsString()
+  @MinLength(3, { message: 'Username phải chứa nhất 3 ký tự' })
+  username: string;
+
+  @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
+  @IsString()
+  @MinLength(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' })
+  password: string;
+
+  @IsNotEmpty({ message: 'Email không được để trống' })
+  @IsEmail({}, { message: 'Định dạng email không hợp lệ' })
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+}
+```
+
+- **UpdateUserDto** (`src/user/dto/update-user.dto.ts`):
+```typescript
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto';
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+```
+
+### 4.8. Controller User (`src/user/user.controller.ts`)
+```typescript
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+@Controller('users')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() dto: CreateUserDto) {
+    return this.userService.create(dto);
+  }
+
+  @Get()
+  findAll() {
+    return this.userService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return this.userService.update(id, dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.remove(id);
+  }
+}
+```
+
+### 4.9. Service User (`src/user/user.service.ts`)
+```typescript
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  async create(dto: CreateUserDto): Promise<User> {
+    const existedUsername = await this.userRepository.findOne({
+      where: { username: dto.username },
+    });
+    if (existedUsername) {
+      throw new ConflictException('Tên đăng nhập đã tồn tại');
+    }
+
+    const existedEmail = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+    if (existedEmail) {
+      throw new ConflictException('Email đã tồn tại');
+    }
+
+    const user = this.userRepository.create({
+      username: dto.username,
+      password: dto.password,
+      email: dto.email,
+      fullName: dto.fullName,
+      role: dto.role ?? 'CUSTOMER',
+      isActive: dto.isActive ?? true,
+    });
+
+    return this.userRepository.save(user);
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({
+      order: { id: 'DESC' },
+    });
+  }
+
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Không tìm thấy người dùng với id = ${id}`);
+    }
+
+    return user;
+  }
+
+  async update(id: number, dto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (dto.username && dto.username !== user.username) {
+      const existed = await this.userRepository.findOne({
+        where: { username: dto.username },
+      });
+      if (existed) {
+        throw new ConflictException('Tên đăng nhập đã tồn tại');
+      }
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const existed = await this.userRepository.findOne({
+        where: { email: dto.email },
+      });
+      if (existed) {
+        throw new ConflictException('Email đã tồn tại');
+      }
+    }
+
+    const updated = this.userRepository.merge(user, dto);
+    return this.userRepository.save(updated);
+  }
+
+  async remove(id: number): Promise<{ message: string }> {
+    const user = await this.findOne(id);
+    await this.userRepository.remove(user);
+    return { message: `Đã xóa người dùng có id = ${id}` };
+  }
+}
+```
+
+### 4.10. Module User (`src/user/user.module.ts`)
+```typescript
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user.entity';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User])],
+  controllers: [UserController],
+  providers: [UserService],
+  exports: [UserService],
+})
+export class UserModule {}
+```
+
 ---
 
 ## 5. Lưu đồ thuật toán (Activity Diagram) của CRUD Product
 
 ### Sơ đồ trực quan từ file thiết kế:
 ![Lưu đồ thuật toán CRUD Product](https://i.ibb.co/qYKxfFd6/ktra-GKI-drawio.png)
+
+---
+
+## 6. Lưu đồ thuật toán (Activity Diagram) của CRUD User
+
+### Sơ đồ tương ứng cho User CRUD:
+
+```mermaid
+flowchart TD
+    Start([Bắt Đầu]) --> ReceiveReq[Nhận yêu cầu<br/>CREATE, READ, UPDATE, DELETE]
+    ReceiveReq --> TypeDecision{Loại}
+
+    %% CREATE BRANCH
+    TypeDecision -- Create --> InputData[Nhập Dữ Liệu User<br/>username, password, email]
+    InputData --> ValidateCreate{Dữ liệu hợp lệ &<br/>username/email chưa tồn tại}
+    ValidateCreate -- False --> ErrorCreate[Trả về mã lỗi<br/>409 / 400]
+    ValidateCreate -- True --> SaveCreate[Lưu User và CSDL]
+    SaveCreate --> Return201[Trả về mã 201 Created]
+
+    %% READ BRANCH
+    TypeDecision -- READ --> QueryRead[Truy Vấn CSDL<br/>FindAll || findOne id]
+    QueryRead --> FoundRead{Tìm Thấy ?}
+    FoundRead -- True --> Return200[Trả về mã 200<br/>kèm thông tin người dùng]
+    FoundRead -- False --> Error404Read[Trả về mã lỗi 404]
+
+    %% UPDATE BRANCH
+    TypeDecision -- Update --> FindUpdate[Tìm người dùng theo ID<br/>FindOne id]
+    FindUpdate --> FoundUpdate{Tìm thấy}
+    FoundUpdate -- False --> Error404Update[Trả lỗi 404]
+    FoundUpdate -- True --> UsernameEmailChanged{Kiểm tra thay đổi<br/>username/email}
+    UsernameEmailChanged -- False --> ExecUpdate[Cập nhật bản ghi<br/>Update user SET]
+    UsernameEmailChanged -- True --> UserExistCheck{Kiểm tra username/email<br/>tồn tại chưa}
+    UserExistCheck -- True --> DuplicateUser{Trùng}
+    DuplicateUser -- True --> Error409Update[Báo mã lỗi 409]
+    DuplicateUser -- False --> ExecUpdate
+
+    %% DELETE BRANCH
+    TypeDecision -- Delete --> FindDelete[Tìm người dùng theo ID<br/>FindOne id]
+    FindDelete --> FoundDelete{Tìm thấy}
+    FoundDelete -- False --> Error404Delete[Trả mã lỗi 404]
+    FoundDelete -- True --> ExecDelete[Xóa bản ghi khỏi CSDL<br/>DELETE FROM user]
+
+    %% CONVERGENCE TO NOTIFICATION
+    ErrorCreate --> ShowNotification[Hiển Thị Thông Báo]
+    Return201 --> ShowNotification
+    Return200 --> ShowNotification
+    Error404Read --> ShowNotification
+    Error404Update --> ShowNotification
+    ExecUpdate --> ShowNotification
+    Error409Update --> ShowNotification
+    Error404Delete --> ShowNotification
+    ExecDelete --> ShowNotification
+```
 
