@@ -1,7 +1,7 @@
 # BÁO CÁO THỰC HÀNH BÀI TẬP LỚN
 ## HỌC PHẦN: PHÁT TRIỂN HỆ THỐNG THƯƠNG MẠI ĐIỆN TỬ
 ### PHẦN BÀI LÀM CỦA THÀNH VIÊN: SINH VIÊN A - ĐỐI TƯỢNG: SẢN PHẨM (PRODUCT)
-
+#Nguyen Tan Dung - 24100552
 ---
 
 ## 1. Link Github Repo công việc
@@ -647,7 +647,7 @@ export class UserModule {}
 
 ## 6. Lưu đồ thuật toán (Activity Diagram) của CRUD User
 
-### Sơ đồ tương ứng cho User CRUD:
+### Sơ đồ User CRUD:
 
 ```mermaid
 flowchart TD
@@ -662,7 +662,7 @@ flowchart TD
     SaveCreate --> Return201[Trả về mã 201 Created]
 
     %% READ BRANCH
-    TypeDecision -- READ --> QueryRead[Truy Vấn CSDL<br/>FindAll || findOne id]
+    TypeDecision -- READ --> QueryRead["Truy Vấn CSDL<br/>FindAll || findOne(id)"]
     QueryRead --> FoundRead{Tìm Thấy ?}
     FoundRead -- True --> Return200[Trả về mã 200<br/>kèm thông tin người dùng]
     FoundRead -- False --> Error404Read[Trả về mã lỗi 404]
