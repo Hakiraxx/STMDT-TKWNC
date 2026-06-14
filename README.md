@@ -1,7 +1,7 @@
 # BÁO CÁO THỰC HÀNH BÀI TẬP LỚN
 ## HỌC PHẦN: PHÁT TRIỂN HỆ THỐNG THƯƠNG MẠI ĐIỆN TỬ
 ### PHẦN BÀI LÀM CỦA THÀNH VIÊN: SINH VIÊN A - ĐỐI TƯỢNG: SẢN PHẨM (PRODUCT)
-#Nguyen Tan Dung - 24100552
+
 ---
 
 ## 1. Link Github Repo công việc
