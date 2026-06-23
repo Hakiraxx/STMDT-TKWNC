@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -34,9 +35,10 @@ export class UserService {
       throw new ConflictException('Email đã tồn tại');
     }
 
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
       username: dto.username,
-      password: dto.password,
+      password: hashedPassword,
       email: dto.email,
       fullName: dto.fullName,
       role: dto.role ?? 'CUSTOMER',
@@ -66,6 +68,12 @@ export class UserService {
     return user;
   }
 
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { username },
+    });
+  }
+
   // ---------------- UPDATE ----------------
   async update(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
@@ -90,7 +98,11 @@ export class UserService {
       }
     }
 
-    const updated = this.userRepository.merge(user, dto);
+    const updateData = { ...dto };
+    if (dto.password) {
+      updateData.password = await bcrypt.hash(dto.password, 10);
+    }
+    const updated = this.userRepository.merge(user, updateData);
     return this.userRepository.save(updated);
   }
 

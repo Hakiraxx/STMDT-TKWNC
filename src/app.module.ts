@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ProductModule } from './product/product.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 import { Category } from './category/category.entity';
 import { Product } from './product/product.entity';
 import { User } from './user/user.entity';
@@ -24,6 +25,7 @@ import { User } from './user/user.entity';
     }),
     ProductModule,
     UserModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
